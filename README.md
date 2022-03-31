@@ -22,3 +22,6 @@ document](https://docs.sd-core.opennetworking.org/master/developer/aiab.html#)
 2. APIs to lock database so that no 2 instances update the same database content. 
 3. Add more APIs which will help cloud native application development.
 4. Deploy MongoDB with sharding.
+
+## How to contribute
+You can add new APIs for the application
