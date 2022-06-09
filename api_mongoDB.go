@@ -496,10 +496,8 @@ func RestfulAPIPatchOneTimeout(collName string, filter bson.M, putData map[strin
 // does not create a new one.
 // If the Index exists on the same "timeField" with a different timeout,
 // then API will return error saying Index already exists.
-func RestfulAPIPutOneTimeout(collName string, filter bson.M, putData map[string]interface{}, timeout int32, timeField string) bool {
+func RestfulAPICreateTTLIndex(collName string, timeout int32, timeField string) bool {
 	collection := Client.Database(dbName).Collection(collName)
-	var checkItem map[string]interface{}
-
 	index := mongo.IndexModel{
 		Keys:    bsonx.Doc{{Key: timeField, Value: bsonx.Int32(1)}},
 		Options: options.Index().SetExpireAfterSeconds(timeout),
@@ -508,7 +506,34 @@ func RestfulAPIPutOneTimeout(collName string, filter bson.M, putData map[string]
 	_, err := collection.Indexes().CreateOne(context.Background(), index)
 	if err != nil {
 		logger.MongoDBLog.Println("Index creation failed for Field : ", timeField, " in Collection : ", collName)
+		return false
 	}
+
+	return true
+}
+
+// This API adds document to collection with name : "collName"
+// It also creates an Index with Time to live (TTL) on the collection.
+// All Documents in the collection will have the the same TTL. The timestamps
+// each document can be different and can be updated as per procedure.
+// If the Index with same timeout value is present already then it
+// does not create a new one.
+// If the Index exists on the same "timeField" with a different timeout,
+// then API will return error saying Index already exists.
+func RestfulAPIPutOneTimeout(collName string, filter bson.M, putData map[string]interface{}, timeout int32, timeField string) bool {
+	collection := Client.Database(dbName).Collection(collName)
+	var checkItem map[string]interface{}
+
+	/*
+		index := mongo.IndexModel{
+			Keys:    bsonx.Doc{{Key: timeField, Value: bsonx.Int32(1)}},
+			Options: options.Index().SetExpireAfterSeconds(timeout),
+		}
+
+		_, err := collection.Indexes().CreateOne(context.Background(), index)
+		if err != nil {
+			logger.MongoDBLog.Println("Index creation failed for Field : ", timeField, " in Collection : ", collName)
+		}*/
 
 	collection.FindOne(context.TODO(), filter).Decode(&checkItem)
 
